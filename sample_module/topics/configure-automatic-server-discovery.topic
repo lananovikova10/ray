@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="configure-automatic-server-discovery"
+       title="Automatic server discovery" switcher-label="Platforms">
+
+        <tip>
+            <p>
+                This documentation is about <control>License Server</control>.
+                For <res resource-id="xls10">information</res> about <control>License Vault</control>, <a href="https://www.jetbrains.com/help/license-vault-cloud/Introduction_to_License_Vault.html">click here</a>.
+            </p>
+        </tip>
+
+        <p>
+            This topic is relevant for system administrators.
+            To make the authorization process easier for users, enable automatic server discovery.
+            This way IDEs will automatically insert the server URL in the License Activation dialog.
+        </p>
+
+        <chapter title="Configure automatic server discovery" id="configure-automatic-license-discovery">
+            <p>Pick one of the three ways to point JetBrains product to %abbreviation%.</p>
+
+            <chapter title="Add a DNS TXT record" id="add-a-dns-txt-record" collapsible="true" default-state="collapsed">
+                <procedure>
+                    <step>
+                        <p>If you use DHCP in your internal network, you also get the DNS domain name via DHCP
+                            (<code>&lt;domain-name&gt;</code>).
+                            In this case, add a DNS TXT record to the corresponding DNS zone (<code>&lt;domain-name&gt;</code>).
+                        </p>
+                        <p>
+                            For example, if your %abbreviation% is running on
+                            <code>http://fls.company.com:8080</code>, add the following record:
+                            <code>_jetbrains-license-server.company.com</code> with text <code>url=http://fls.company.com:8080</code>.
+                        </p>
+                    </step>
+                    <step>
+                        <p>Verify the record using the command line:</p>
+                        <tabs group="Platforms">
+                            <tab title="Linux" group-key="Linux">
+                                <code style="block" lang="Shell">
+                                    dig _jetbrains-license-server.&lt;domain_name&gt; TXT
+                                </code>
+                            </tab>
+                            <tab title="macOS" group-key="macOS">
+                                <code style="block" lang="Shell">
+                                    dig _jetbrains-license-server.&lt;domain_name&gt; TXT
+                                </code>
+                            </tab>
+                            <tab title="Windows" group-key="Windows">
+                                <code-block lang="Shell">
+                                    nslookup -type=TXT _jetbrains-license-server.&lt;domain_name&gt;
+                                </code-block>
+                            </tab>
+                        </tabs>
+
+                        <p>A valid response should look like this:</p>
+                        <code-block lang="Shell">
+                            _jetbrains-license-server.&lt;domain_name&gt;. 3600 IN TXT "url=http://fls.company.com"
+                        </code-block>
+                    </step>
+                </procedure>
+            </chapter>
+            <chapter title="Add an environment variable" id="add-an-environment-variable" collapsible="true" default-state="collapsed">
+                <p>
+                    Add the <code>JETBRAINS_LICENSE_SERVER</code> environment variable to the
+                    local profile on the users' machines.
+                    Set the %abbreviation% URL as it's value.
+                </p>
+                <note>
+                    The environment variables are supported in IntelliJ Platform-based products since July 2017.
+                </note>
+            </chapter>
+            <chapter title="Add a JVM option" id="add-a-jvm-option" collapsible="true" default-state="collapsed">
+                <p>
+                    For the JetBrains products that can be configured with JVM options,
+                    you can add the <code>-DJETBRAINS_LICENSE_SERVER</code> option and set the %abbreviation% URL
+                    as it's value.
+                </p>
+                <p>
+                    Refer to your product's documentation to learn how to set JVM options. For example,
+                    here's the JVM settings description
+                    <a href="https://www.jetbrains.com/help/idea/tuning-the-ide.html">for IntelliJ IDEA</a>.
+                </p>
+            </chapter>
+        </chapter>
+
+        <chapter title="Check your configuration" id="check-your-configuration">
+            <p>
+                To check your configuration:
+            </p>
+            <list style="decimal">
+                <li>
+                    Open the IDE and go to the License Activation dialog.
+                </li>
+                <li>Choose
+                    <control>License server</control>, then click <control>Discover Server</control>.
+                    The %abbreviation% address should automatically appear in the corresponding field.
+                </li>
+                <li>
+                    Click <control>Activate</control> to connect to %abbreviation%.
+                </li>
+            </list>
+            <img src="registration_dialog_intellij_idea.png" alt="License Activation dialog for IntelliJ IDEA" width="600"/>
+        </chapter>
+    </topic>

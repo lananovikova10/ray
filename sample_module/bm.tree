@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/product-profile.dtd">
+
+<instance-profile id="bm"
+                  name="Ray"
+                  start-page="about-ray.topic">
+
+    <toc-element topic="beam.topic"/>
+    <toc-element topic="configure-automatic-server-discovery.topic"/>
+    <toc-element topic="getting-started.md" id="gts">
+        <toc-element topic="Why-Ray.md"/>
+        <toc-element topic="about-ray.topic"/>
+    </toc-element>
+    <toc-element topic="How-to-create-a-pipeline-object.md"/>
+    <toc-element topic="extention-points-test.md"/>
+    <toc-element topic="container-envs.md"/>
+    <toc-element topic="google-bq.topic"/>
+    <toc-element topic="faq.md"/>
+</instance-profile>

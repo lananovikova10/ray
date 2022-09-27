@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="beam"
+       title="%product% Quick Start">
+
+    <section-starting-page>
+        <title>%product%</title>
+        <description>
+            %product% is an open-source, unified programming model for batch and streaming data processing pipelines
+            that simplifies large-scale data processing dynamics.
+        </description>
+        <spotlight>
+            <a href="beam.topic" type="creative"/>
+            <a href="about-ray.topic" type="file"/>
+        </spotlight>
+        <primary><title>Google BQ</title><a href="google-bq.topic"/></primary>
+        <secondary><title>Pipelines</title><a href="getting-started.md"/></secondary>
+    </section-starting-page>
+
+</topic>

@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="about-ray"
+       title="%product% Programming Guide">
+
+    <p>The %product% Programming Guide is intended for %product% users who want to use the Beam SDKs to create data processing pipelines.
+    </p>
+    <p>
+        It provides guidance for using the %product% SDK classes to build and test your pipeline.
+    </p>
+
+    <p>This is <res id="python-library" resource-id="xml">Downloadable</res>.</p>
+
+    <img src="gaming-example.gif" alt="Gaming Example" border-effect="none"/>
+    <p>
+        The programming guide is not intended as an exhaustive reference, but as a language-agnostic,
+        high-level guide to programmatically building your Beam pipeline.
+    </p>
+    <p>
+        As the programming guide is filled out, the text will include code samples in multiple languages to help illustrate how to implement Beam concepts in your pipelines.
+    </p>
+    <p>
+        If you want a brief introduction to %product%'s basic concepts before reading the programming guide, take a look at the Basics of the Beam model page.
+    </p>
+    <tabs group="lang">
+        <tab title="Java SDK" group-key="Java">
+        </tab>
+        <tab title="Python SDK" group-key="Python">
+            <p>The Python SDK supports Python 3.7, 3.8, and 3.9.</p>
+        </tab>
+        <tab title="Go SDK" group-key="Go">
+            <p>The Go SDK supports Go v1.18+. SDK release 2.32.0 is the last experimental version.</p>
+        </tab>
+    </tabs>
+    <chapter title="1. Overview">
+            <p>To use Beam, you need to first create a driver program using the classes in one of the Beam SDKs. Your
+                driver program defines your pipeline, including all of the inputs, transforms, and outputs; it also sets
+                execution options for your pipeline (typically passed in using command-line options). These include the
+                Pipeline Runner, which, in turn, determines what back-end your pipeline will run on.
+            </p>
+            <p>The Beam SDKs provide a number of abstractions that simplify the mechanics of large-scale distributed
+                data processing. The same Beam abstractions work with both batch and streaming data sources. When you
+                create your Beam pipeline, you can think about your data processing task in terms of these abstractions.
+                They include:
+            </p>
+        <list>
+            <li><code>Pipeline</code>: A Pipeline encapsulates your entire data processing task, from start to finish. This includes
+                reading input data, transforming that data, and writing output data. All Beam driver programs must
+                create a Pipeline. When you create the Pipeline, you must also specify the execution options that tell
+                the Pipeline where and how to run.
+            </li>
+            <li><code>PCollection</code>: A PCollection represents a distributed data set that your Beam pipeline operates on. The
+                data set can be bounded, meaning it comes from a fixed source like a file, or unbounded, meaning it
+                comes from a continuously updating source via a subscription or other mechanism. Your pipeline typically
+                creates an initial PCollection by reading data from an external data source, but you can also create a
+                PCollection from in-memory data within your driver program. From there, PCollections are the inputs and
+                outputs for each step in your pipeline.
+            </li>
+            <li><code>PTransform</code>: A PTransform represents a data processing operation, or a step, in your pipeline. Every
+                PTransform takes one or more PCollection objects as input, performs a processing function that you
+                provide on the elements of that PCollection, and produces zero or more output PCollection objects.
+            </li>
+            <li><code>Scope</code>: The Go SDK has an explicit scope variable used to build a Pipeline. A Pipeline can return it’s
+                root scope with the Root() method. The scope variable is passed to PTransform functions to place them in
+                the Pipeline that owns the Scope.
+            </li>
+            <li><code>I/O transforms</code>: Beam comes with a number of “IOs” - library PTransforms that read or write data to
+                various external storage systems.
+            </li>
+        </list>
+        <procedure>
+            <p>A typical Beam driver program works as follows:</p>
+            <step>Create a Pipeline object and set the pipeline execution options, including the Pipeline Runner.</step>
+            <step>Create an initial PCollection for pipeline data, either using the IOs to read data from an external
+                storage system, or using a Create transform to build a PCollection from in-memory data.
+            </step>
+            <step>Apply PTransforms to each PCollection. Transforms can change, filter, group, analyze, or otherwise
+                process the elements in a PCollection. A transform creates a new output PCollection without modifying
+                the input collection. A typical pipeline applies subsequent transforms to each new output PCollection in
+                turn until processing is complete. However, note that a pipeline does not have to be a single straight
+                line of transforms applied one after another: think of PCollections as variables and PTransforms as
+                functions applied to these variables: the shape of the pipeline can be an arbitrarily complex processing
+                graph.
+            </step>
+            <step>Use IOs to write the final, transformed PCollection(s) to an external source.</step>
+            <step>Run the pipeline using the designated Pipeline Runner.</step>
+        </procedure>
+            <p>When you run your Beam driver program, the Pipeline Runner that you designate constructs a workflow
+                graph of your pipeline based on the PCollection objects you’ve created and transforms that you’ve
+                applied. That graph is then executed using the appropriate distributed processing back-end, becoming an
+                asynchronous "job" (or equivalent) on that back-end.
+            </p>
+    </chapter>
+    <chapter title="2. Creating a pipeline">
+        <p>The Pipeline abstraction encapsulates all the data and steps in your data processing task.
+            Your Beam driver program typically starts by constructing a Pipeline object,
+            and then using that object as the basis for creating the pipeline’s data sets
+            as PCollections and its operations as Transforms.</p>
+        <p>To use Beam, your driver program must first create an instance of the
+            Beam SDK class Pipeline (typically in the main() function).
+            When you create your Pipeline, you’ll also need to set some configuration options.
+            You can set your pipeline’s configuration options programmatically,
+            but it’s often easier to set the options ahead of time (or read them from the command line)
+            and pass them to the Pipeline object when you create the object.</p>
+        <tabs group="lang">
+            <tab title="Java" group-key="Java">
+                <code-block lang="Java">
+                    // Start by defining the options for the pipeline.
+                    PipelineOptions options = PipelineOptionsFactory.create();
+
+                    // Then create the pipeline.
+                    Pipeline p = Pipeline.create(options);
+                </code-block>
+            </tab>
+            <tab title="Python" group-key="Python">
+                <code-block lang="python">
+                    import apache_beam as beam
+
+                    with beam.Pipeline() as pipeline:
+                    pass  # build your pipeline here
+                </code-block>
+            </tab>
+            <tab title="Go" group-key="Go">
+                <code-block lang="go">
+                    // beam.Init() is an initialization hook that must be called
+                    // near the beginning of main(), before creating a pipeline.
+                    beam.Init()
+
+                    // Create the Pipeline object and root scope.
+                    pipeline, scope := beam.NewPipelineWithRoot()
+                </code-block>
+            </tab>
+            <tab title="Typescript" group-key="Typescript">
+                <code-block lang="typescript">
+                    await beam.createRunner().run(function pipeline(root) {
+                    // Use root to build a pipeline.
+                    });
+
+                </code-block>
+            </tab>
+        </tabs>
+        <chapter title="2.1 Configuring pipeline options">
+            <p>Use the pipeline options to configure different aspects of your pipeline, such as the pipeline runner that will execute your pipeline and any runner-specific configuration required by the chosen runner.
+                Your pipeline options will potentially include information such as your project ID or a location for storing files.</p>
+            <chapter title=" 2.1.1. Setting PipelineOptions from command-line arguments">
+                <p>Any Javascript object can be used as pipeline options.
+                    One can either construct one manually, but it is also common to pass an object created from command line options such as yargs.argv.</p>
+                <tabs group="lang">
+                    <tab title="Java" group-key="Java">
+                        <code-block lang="Java">
+                            PipelineOptions options =
+                            PipelineOptionsFactory.fromArgs(args).withValidation().create();
+                        </code-block>
+                    </tab>
+                    <tab title="Python" group-key="Python">
+                        <code-block lang="python">
+                            from apache_beam.options.pipeline_options import PipelineOptions
+
+                            beam_options = PipelineOptions()
+                        </code-block>
+                    </tab>
+                    <tab title="Go" group-key="Go">
+                        <code-block lang="go">
+                            // If beamx or Go flags are used, flags must be parsed first,
+                            // before beam.Init() is called.
+                            flag.Parse()
+                        </code-block>
+                    </tab>
+                    <tab title="Typescript" group-key="Typescript">
+                        <code-block lang="typescript">
+                            const pipeline_options = {
+                            runner: "default",
+                            project: "my_project",
+                            };
+
+                            const runner = beam.createRunner(pipeline_options);
+
+                            const runnerFromCommandLineOptions = beam.createRunner(yargs.argv);
+
+                        </code-block>
+                    </tab>
+                </tabs>
+                <p>This interprets command-line arguments that follow the format:</p>
+
+                <code-block lang="plain text">
+                    <![CDATA[
+                    --<option>=<value>
+                    ]]>
+                </code-block>
+                <note>The WordCount example pipeline demonstrates how to set pipeline options at runtime by using command-line options.</note>
+            </chapter>
+            <chapter title="2.1.2. Creating custom options">
+                <p>You can add your own custom options in addition to the standard PipelineOptions.
+                    The following example shows how to add input and output custom options:</p>
+                <tabs group="lang">
+                    <tab title="Java" group-key="Java">
+                        <code-block lang="Java">
+                            public interface MyOptions extends PipelineOptions {
+                            String getInput();
+                            void setInput(String input);
+
+                            String getOutput();
+                            void setOutput(String output);
+                            }
+                        </code-block>
+                    </tab>
+                    <tab title="Python" group-key="Python">
+                        <code-block lang="python">
+                            from apache_beam.options.pipeline_options import PipelineOptions
+
+                            class MyOptions(PipelineOptions):
+                            @classmethod
+                            def _add_argparse_args(cls, parser):
+                            parser.add_argument('--input')
+                            parser.add_argument('--output')
+                        </code-block>
+                    </tab>
+                    <tab title="Go" group-key="Go">
+                        <code-block lang="go">
+                            // Use standard Go flags to define pipeline options.
+                            var (
+                            input  = flag.String("input", "", "")
+                            output = flag.String("output", "", "")
+                            )
+                        </code-block>
+                    </tab>
+                    <tab title="Typescript" group-key="Typescript">
+                        <code-block lang="typescript">
+                            const options = yargs.argv; // Or an alternative command-line parsing library.
+
+                            // Use options.input and options.output during pipeline construction.
+
+
+                        </code-block>
+                    </tab>
+                </tabs>
+                <p>You can also specify a description, which appears when a user passes --help as a command-line argument, and a default value.</p>
+                <p>Now your pipeline can accept <code>--input=value</code> and <code>--output=value</code> as command-line arguments.</p>
+            </chapter>
+        </chapter>
+    </chapter>
+    <chapter title="3. PCollections">
+        <p>The abstraction represents a potentially distributed, multi-element data set. You can think of a PCollection as “pipeline” data;
+            Beam transforms use PCollection objects as inputs and outputs. As such, if you want to work with data in your pipeline, it must be in the form of a PCollection.
+            After you’ve created your Pipeline, you’ll need to begin by creating at least one PCollection in some form. The PCollection you create serves as the input for the first operation in your pipeline.
+        </p>
+        <chapter title="3.1. Creating a PCollection">
+            <p>
+                You create a PCollection by either reading data from an external source using Beam’s Source API,
+                or you can create a PCollection of data stored in an in-memory collection class in your driver program.
+                The former is typically how a production pipeline would ingest data;
+                Beam’s Source APIs contain adapters to help you read from external sources like large cloud-based files, databases, or subscription services. The latter is primarily useful for testing and debugging purposes.
+            </p>
+            <chapter title="3.1.1. Reading from an external source">
+                <p>To read from an external source, you use one of the Beam-provided I/O adapters.
+                    The adapters vary in their exact usage, but all of them read from some external data source and return a PCollection whose elements represent the data records in that source.
+                    Each data source adapter has a Read transform; to read, you must apply that transform to the Pipeline object itself. textio.ReadFromText, for example, reads from an external text file and returns a PCollection whose elements are of type String, each String represents one line from the text file.
+                    Here’s how you would apply textio.ReadFromText to your Pipeline root to create a PCollection:
+                    See the section on I/O to learn more about how to read from the various data sources supported by the Beam SDK.
+                </p>
+            </chapter>
+            <chapter title="3.1.2. Creating a PCollection from in-memory data">
+                <tabs group="lang">
+                    <tab title="Java" group-key="Java">
+                        <p>To create a PCollection from an in-memory Java Collection, you use the Beam-provided Create transform. Much like a data adapter’s Read, you apply Create directly to your Pipeline object itself.</p>
+                        <p>As parameters, Create accepts the Java Collection and a Coder object. The Coder specifies how the elements in the Collection should be encoded.</p>
+                        <p>The following example code shows how to create a PCollection from an in-memory List :</p>
+                        <code-block lang="Java">
+                            <![CDATA[
+                            public static void main(String[] args) {
+                            // Create a Java Collection, in this case a List of Strings.
+                            final List<String> LINES = Arrays.asList(
+                            "To be, or not to be: that is the question: ",
+                            "Whether 'tis nobler in the mind to suffer ",
+                            "The slings and arrows of outrageous fortune, ",
+                            "Or to take arms against a sea of troubles, ");
+
+                            // Create the pipeline.
+                            PipelineOptions options =
+                            PipelineOptionsFactory.fromArgs(args).create();
+                            Pipeline p = Pipeline.create(options);
+
+                            // Apply Create, passing the list and the coder, to create the PCollection.
+                            p.apply(Create.of(LINES)).setCoder(StringUtf8Coder.of());
+                            }
+                            ]]>
+                        </code-block>
+                    </tab>
+                    <tab title="Python" group-key="Python">
+                        <p>To create a PCollection from an in-memory list, you use the Beam-provided Create transform.
+                            Apply this transform directly to your Pipeline object itself.
+                            The following example code shows how to create a PCollection from an in-memory list :</p>
+                        <code-block lang="python">
+                            import apache_beam as beam
+
+                            with beam.Pipeline() as pipeline:
+                            lines = (
+                            pipeline
+                            | beam.Create([
+                            'To be, or not to be: that is the question: ',
+                            "Whether 'tis nobler in the mind to suffer ",
+                            'The slings and arrows of outrageous fortune, ',
+                            'Or to take arms against a sea of troubles, ',
+                            ]))
+                        </code-block>
+                    </tab>
+                    <tab title="Go" group-key="Go">
+                        <p>To create a PCollection from an in-memory slice, you use the Beam-provided beam.CreateList transform.
+                            Pass the pipeline scope, and the slice to this transform.
+                            The following example code shows how to create a PCollection from an in-memory slice :</p>
+                        <code-block lang="go">
+                            lines := []string{
+                            "To be, or not to be: that is the question: ",
+                            "Whether 'tis nobler in the mind to suffer ",
+                            "The slings and arrows of outrageous fortune, ",
+                            "Or to take arms against a sea of troubles, ",
+                            }
+
+                            // Create the Pipeline object and root scope.
+                            // It's conventional to use p as the Pipeline variable and
+                            // s as the scope variable.
+                            p, s := beam.NewPipelineWithRoot()
+
+                            // Pass the slice to beam.CreateList, to create the pcollection.
+                            // The scope variable s is used to add the CreateList transform
+                            // to the pipeline.
+                            linesPCol := beam.CreateList(s, lines)
+                        </code-block>
+                    </tab>
+                    <tab title="Typescript" group-key="Typescript">
+                        <p>
+                            To create a PCollection from an in-memory array, you use the Beam-provided Create transform.
+                            Apply this transform directly to your Root object.</p>
+                        <p>
+                            The following example code shows how to create a PCollection from an in-memory array:
+                        </p>
+                        <code-block lang="typescript">
+                            function pipeline(root: beam.Root) {
+                            const pcoll = root.apply(
+                            beam.create([
+                            "To be, or not to be: that is the question: ",
+                            "Whether 'tis nobler in the mind to suffer ",
+                            "The slings and arrows of outrageous fortune, ",
+                            "Or to take arms against a sea of troubles, ",
+                            ])
+                            );
+                            }
+
+                        </code-block>
+                    </tab>
+                </tabs>
+            </chapter>
+        </chapter>
+        <chapter title="3.2. PCollection characteristics">
+            <p>A PCollection is owned by the specific Pipeline object for which it is created; multiple pipelines cannot share a PCollection.
+            </p>
+            <chapter title="3.2.1. Element type">
+                <p>The elements of a PCollection may be of any type, but must all be of the same type.
+                    However, to support distributed processing, Beam needs to be able to encode each individual element as a byte string (so elements can be passed around to distributed workers).
+                    The Beam SDKs provide a data encoding mechanism that includes built-in encoding for commonly-used types as well as support for specifying custom encodings as needed.
+                </p>
+            </chapter>
+            <chapter title="3.2.2. Element schema">
+                <p>
+                    In many cases, the element type in a PCollection has a structure that can introspected.
+                </p>
+                <p>
+                    Examples are JSON, Protocol Buffer, Avro, and database records.
+                    Schemas provide a way to express types as a set of named fields, allowing for more-expressive aggregations.
+
+                </p>
+            </chapter>
+            <chapter title="3.2.3. Immutability">
+                <p>
+                    A PCollection is immutable. Once created, you cannot add, remove, or change individual elements.
+                </p>
+                <p>
+                    A Beam Transform might process each element of a PCollection and generate new pipeline data (as a new PCollection),
+                    but it does not consume or modify the original input collection.
+                </p>
+                <note>
+                    Beam SDKs avoid unnecessary copying of elements, so PCollection contents are logically immutable, not physically immutable. Changes to input elements may be visible to other DoFns executing within the same bundle, and may cause correctness issues.
+                    As a rule, it’s not safe to modify values provided to a DoFn.
+                </note>
+            </chapter>
+            <chapter title="3.2.4. Random access">
+                <p>
+                    A PCollection does not support random access to individual elements.
+                    Instead, Beam Transforms consider every element in a PCollection individually.
+                </p>
+            </chapter>
+            <chapter title="3.2.5. Size and boundedness">
+                    <p>A PCollection is a large, immutable “bag” of elements. There is no upper limit on how many
+                        elements a PCollection can contain; any given PCollection might fit in memory on a single
+                        machine, or it might represent a very large distributed data set backed by a persistent data
+                        store.
+                    </p>
+                    <p>A PCollection can be either bounded or unbounded in size. A bounded PCollection represents a
+                        data set of a known, fixed size, while an unbounded PCollection represents a data set of
+                        unlimited size. Whether a PCollection is bounded or unbounded depends on the source of the data
+                        set that it represents.
+                    </p>
+                    <p>
+                        Reading from a batch data source, such as a file or a database, creates
+                        a bounded PCollection. Reading from a streaming or continuously-updating data source, such as
+                        Pub/Sub or Kafka, creates an unbounded PCollection (unless you explicitly tell it not to).
+                    </p>
+                    <p>The bounded (or unbounded) nature of your PCollection affects how Beam processes your data. A
+                        bounded PCollection can be processed using a batch job, which might read the entire data set
+                        once, and perform processing in a job of finite length.
+                    </p>
+                    <p>
+                        An unbounded PCollection must be
+                        processed using a streaming job that runs continuously, as the entire collection can never be
+                        available for processing at any one time.
+                    </p>
+                    <p>Beam uses windowing to divide a continuously updating unbounded PCollection into logical windows
+                        of finite size. These logical windows are determined by some characteristic associated with a
+                        data element, such as a timestamp.
+                    </p>
+                    <p>
+                        Aggregation transforms (such as GroupByKey and Combine) work
+                        on a per-window basis — as the data set is generated, they process each PCollection as a
+                        succession of these finite windows.
+                    </p>
+            </chapter>
+            <chapter title="3.2.6. Element timestamps">
+                <p>Each element in a PCollection has an associated intrinsic timestamp. The timestamp for each element is initially assigned by the Source that creates the PCollection. Sources that create an unbounded PCollection often assign each new element a timestamp that corresponds to when the element was read or added.
+                </p>
+                <note>Sources that create a bounded PCollection for a fixed data set also automatically assign timestamps, but the most common behavior is to assign every element the same timestamp (Long.MIN_VALUE).</note>
+                <p>Timestamps are useful for a PCollection that contains elements with an inherent notion of time. If your pipeline is reading a stream of events, like Tweets or other social media messages,
+                    each element might use the time the event was posted as the element timestamp.</p>
+                <p>
+                You can manually assign timestamps to the elements of a PCollection if the source doesn’t do it for you. You’ll want to do this if the elements have an inherent timestamp, but the timestamp is somewhere in the structure of the element itself (such as a “time” field in a server log entry). Beam has Transforms that take a PCollection as input and output an identical PCollection with timestamps attached; see Adding Timestamps for more information about how to do so.
+                </p>
+            </chapter>
+        </chapter>
+    </chapter>
+    <chapter title="4. Transforms">
+        <p>Transforms are the operations in your pipeline, and provide a generic processing framework.
+            You provide processing logic in the form of a function object (colloquially referred to as “user code”), and your user code is applied to each element of an input PCollection (or more than one PCollection).
+        </p>
+        <p>
+            Depending on the pipeline runner and back-end that you choose,
+            many different workers across a cluster may execute instances of your user code in parallel.
+            The user code running on each worker generates the output elements that are ultimately added to the final output PCollection that the transform produces.
+        </p>
+        <p>Aggregation is an important concept to understand when learning about Beam’s transforms.
+            For an introduction to aggregation, see the Basics of the Beam model Aggregation section.
+        </p>
+        <note>The Beam SDKs contain a number of different transforms that you can apply to your pipeline’s PCollections. These include general-purpose core transforms, such as ParDo or Combine. There are also pre-written composite transforms included in the SDKs, which combine one or more of the core transforms in a useful processing pattern, such as counting or combining elements in a collection. You can also define your own more complex composite transforms to fit your pipeline’s exact use case.
+        </note>
+        <chapter title="4.1. Applying transforms">
+           <p>To invoke a transform, you must apply it to the input PCollection.
+               Each transform in the Beam SDKs has a generic apply method.
+           </p>
+            <p>
+               Invoking multiple Beam transforms is similar to method chaining, but with one slight difference:
+               You apply the transform to the input PCollection, passing the transform itself as an argument,
+               and the operation returns the output PCollection. This takes the general form:
+           </p>
+            <tabs group="lang">
+                <tab title="Java" group-key="Java">
+                    <code-block lang="Java">
+                        [Final Output PCollection] = [Initial Input PCollection].apply([First Transform])
+                        .apply([Second Transform])
+                        .apply([Third Transform])
+                    </code-block>
+                </tab>
+                <tab title="Python" group-key="Python">
+                    <code-block lang="python">
+                        [Final Output PCollection] = ([Initial Input PCollection] | [First Transform]
+                        | [Second Transform]
+                        | [Third Transform])
+                    </code-block>
+                </tab>
+                <tab title="Go" group-key="Go">
+                    <code-block lang="go">
+                        [Second PCollection] := beam.ParDo(scope, [First Transform], [Initial Input PCollection])
+                        [Third PCollection] := beam.ParDo(scope, [Second Transform], [Second PCollection])
+                        [Final Output PCollection] := beam.ParDo(scope, [Third Transform], [Third PCollection])
+                    </code-block>
+                </tab>
+                <tab title="Typescript" group-key="Typescript">
+                    <code-block lang="typescript">
+                        [Final Output PCollection] = [Initial Input PCollection].apply([First Transform])
+                        .apply([Second Transform])
+                        .apply([Third Transform])
+
+                    </code-block>
+                </tab>
+            </tabs>
+            <p>The graph of this pipeline looks like the following:</p>
+            <img src="design-your-pipeline-linear.png" alt="pipeline"/>
+            <format style="italic">Figure 1: A linear pipeline with three sequential transforms.</format>
+            <p>However, note that a transform does not consume or otherwise alter the input collection —
+                remember that a PCollection is immutable by definition.
+                This means that you can apply multiple transforms to the same input PCollection to create a branching pipeline, like so:
+            </p>
+            <tabs group="lang">
+                <tab title="Java" group-key="Java">
+                    <code-block lang="Java">
+                        [PCollection of database table rows] = [Database Table Reader].apply([Read Transform])
+                        [PCollection of 'A' names] = [PCollection of database table rows].apply([Transform A])
+                        [PCollection of 'B' names] = [PCollection of database table rows].apply([Transform B])
+                    </code-block>
+                </tab>
+                <tab title="Python" group-key="Python">
+                    <code-block lang="python">
+                        [PCollection of database table rows] = [Database Table Reader] | [Read Transform]
+                        [PCollection of 'A' names] = [PCollection of database table rows] | [Transform A]
+                        [PCollection of 'B' names] = [PCollection of database table rows] | [Transform B]
+                    </code-block>
+                </tab>
+                <tab title="Go" group-key="Go">
+                    <code-block lang="go">
+                        [PCollection of database table rows] = beam.ParDo(scope, [Read Transform], [Database Table Reader])
+                        [PCollection of 'A' names] = beam.ParDo(scope, [Transform A], [PCollection of database table rows])
+                        [PCollection of 'B' names] = beam.ParDo(scope, [Transform B], [PCollection of database table rows])
+                    </code-block>
+                </tab>
+                <tab title="Typescript" group-key="Typescript">
+                    <code-block lang="typescript">
+                        [PCollection of database table rows] = [Database Table Reader].apply([Read Transform])
+                        [PCollection of 'A' names] = [PCollection of database table rows].apply([Transform A])
+                        [PCollection of 'B' names] = [PCollection of database table rows].apply([Transform B])
+
+                    </code-block>
+                </tab>
+            </tabs>
+            <p>The graph of this branching pipeline looks like the following:</p>
+            <img src="design-your-pipeline-multiple-pcollections.png" alt="branching pipeline"/>
+            <format style="italic">Figure 2: A branching pipeline. Two transforms are applied to a single PCollection of database table rows.
+            </format>
+            <p>
+                You can also build your own composite transforms that nest multiple transforms inside a single, larger transform.
+                Composite transforms are particularly useful for building a reusable sequence of simple steps that get used in a lot of different places.
+            </p>
+            <p>
+                PTransforms can also be applied to any PValue, which include the Root object, PCollections, arrays of PValues, and objects with PValue values.
+                One can apply transforms to these composite types by wrapping them with beam.P,
+                for example, ray.P({left: pcollA, right: pcollB}).apply(transformExpectingTwoPCollections).
+            </p>
+            <p>
+                PTransforms come in two flavors, synchronous and asynchronous, depending on whether their <emphasis>application*</emphasis> involves asynchronous invocations.
+                An AsyncTransform must be applied with applyAsync and returns a Promise which must be awaited before further pipeline construction.
+
+            </p>
+        </chapter>
+        <chapter title="4.2. Core Beam transforms">
+           <p>Beam provides the following core transforms, each of which represents a different processing paradigm:</p>
+            <list>
+                <li>ParDo</li>
+                <li>GroupByKey</li>
+                <li>CoGroupByKey</li>
+                <li>Combine</li>
+                <li>Flatten</li>
+                <li>Partition</li>
+            </list>
+            <chapter title="4.2.1. ParDo">
+                <p>ParDo is a Beam transform for generic parallel processing.
+                    The ParDo processing paradigm is similar to the “Map” phase of a Map/Shuffle/Reduce-style algorithm: a ParDo transform considers each element in the input PCollection, performs some processing function (your user code)
+                    on that element, and emits zero, one, or multiple elements to an output PCollection.
+                    ParDo is useful for a variety of common data processing operations, including:</p>
+                <list>
+                    <li>Filtering a data set. You can use ParDo to consider each element in a PCollection and either output that element to a new collection or discard it.</li>
+                    <li>Formatting or type-converting each element in a data set. If your input PCollection contains elements that are of a different type or format than you want, you can use ParDo to perform a conversion on each element and output the result to a new PCollection.
+                    </li>
+                    <li>Extracting parts of each element in a data set. If you have a PCollection of records with multiple fields, for example, you can use a ParDo to parse out just the fields you want to consider into a new PCollection.</li>
+                    <li>Performing computations on each element in a data set. You can use ParDo to perform simple or complex computations on every element, or certain elements, of a PCollection and output the results as a new PCollection.
+                    </li>
+                </list>
+                <p>
+                    In such roles, ParDo is a common intermediate step in a pipeline.
+                    You might use it to extract certain fields from a set of raw input records, or convert raw input into a different format; you might also use ParDo to convert processed data into a format suitable for output, like database table rows or printable strings.
+                </p>
+                <p>
+                    When you apply a ParDo transform, you’ll need to provide user code in the form of a DoFn object.
+                    DoFn is a Beam SDK class that defines a distributed processing function.
+                </p>
+                <p>
+                    When you create a subclass of DoFn, note that your subclass should adhere to the Requirements for writing user code for Beam transforms.
+                </p>
+            </chapter>
+            <chapter title="4.2.1.1. Applying ParDo">
+                <p>Like all Beam transforms, you apply ParDo by calling the apply method on the input PCollection and passing ParDo as an argument, as shown in the following example code:
+                </p>
+                <tabs group="lang">
+                    <tab title="Java" group-key="Java">
+                        <code-block lang="Java">
+                            <![CDATA[
+                            // The input PCollection of Strings.
+                            PCollection<String> words = ...;
+
+                            // The DoFn to perform on each element in the input PCollection.
+                            static class ComputeWordLengthFn extends DoFn<String, Integer> { ... }
+
+                            // Apply a ParDo to the PCollection "words" to compute lengths for each word.
+                            PCollection<Integer> wordLengths = words.apply(
+                            ParDo
+                            .of(new ComputeWordLengthFn()));        // The DoFn to perform on each element, which
+                            // we define above.
+                            ]]>
+                        </code-block>
+                    </tab>
+                    <tab title="Python" group-key="Python">
+                        <code-block lang="python">
+                            # The input PCollection of Strings.
+                            words = ...
+
+                            # The DoFn to perform on each element in the input PCollection.
+
+                            class ComputeWordLengthFn(beam.DoFn):
+                            def process(self, element):
+                            return [len(element)]
+
+
+
+                            # Apply a ParDo to the PCollection "words" to compute lengths for each word.
+                            word_lengths = words | beam.ParDo(ComputeWordLengthFn())
+                        </code-block>
+                    </tab>
+                    <tab title="Go" group-key="Go">
+                        <code-block lang="go">
+                            <![CDATA[
+                            // ComputeWordLengthFn is the DoFn to perform on each element in the input PCollection.
+                            type ComputeWordLengthFn struct{}
+
+                            // ProcessElement is the method to execute for each element.
+                            func (fn *ComputeWordLengthFn) ProcessElement(word string, emit func(int)) {
+                            emit(len(word))
+                            }
+
+                            // DoFns must be registered with beam.
+                            func init() {
+                            beam.RegisterType(reflect.TypeOf((*ComputeWordLengthFn)(nil)))
+                            // 2 inputs and 0 outputs => DoFn2x0
+                            // 1 input => Emitter1
+                            // Input/output types are included in order in the brackets
+                            register.DoFn2x0[string, func(int)](&ComputeWordLengthFn{})
+                            register.Emitter1[int]()
+                            }
+
+
+                            // words is an input PCollection of strings
+                            var words beam.PCollection = ...
+
+                            wordLengths := beam.ParDo(s, &ComputeWordLengthFn{}, words)
+                        ]]>
+                        </code-block>
+                    </tab>
+                    <tab title="Typescript" group-key="Typescript">
+                        <code-block lang="typescript">
+                            <![CDATA[
+                            # The input PCollection of Strings.
+                            const words : PCollection<string> = ...
+
+                            # The DoFn to perform on each element in the input PCollection.
+
+                            function computeWordLengthFn(): beam.DoFn<string, number> {
+                            return {
+                            process: function* (element) {
+                            yield element.length;
+                            },
+                            };
+                            }
+
+
+                            const result = words.apply(beam.parDo(computeWordLengthFn()));
+                        ]]>
+                        </code-block>
+                    </tab>
+                </tabs>
+            </chapter>
+            <chapter title="4.2.1.2. Creating a DoFn">
+                <p>
+                    The DoFn object that you pass to ParDo contains the processing logic that gets applied to the elements in the input collection.
+                </p>
+                <p>
+                    When you use Beam, often the most important pieces of code you’ll write are these DoFns - they’re what define your pipeline’s exact data processing tasks.
+                </p>
+                <note>
+                    When you create your DoFn, be mindful of the Requirements for writing user code for Beam transforms and ensure that your code follows them.
+                </note>
+                <p>
+                    Inside your DoFn subclass, you’ll write a method process where you provide the actual processing logic. You don’t need to manually extract the elements from the input collection; the Beam SDKs handle that for you. Your process method should accept an argument element, which is the input element, and return an iterable with its output values. You can accomplish this by emitting individual elements with yield statements. You can also use a return statement with an iterable, like a list or a generator.
+                </p>
+            </chapter>
+            <chapter title="4.2.1.3. DoFn lifecycle">
+                <p>
+                    Here is a sequence diagram that shows the lifecycle of the DoFn during the execution of the ParDo transform.
+                </p>
+                <p>
+                    The comments give useful information to pipeline developers such as the constraints that apply to the objects or particular cases such as failover or instance reuse.
+                    They also give instantiation use cases.
+                </p>
+                <img src="dofn-sequence-diagram.png" alt="DoFn lifecycle"/>
+            </chapter>
+        </chapter>
+        <chapter title="4.2.2. GroupByKey">
+            <p>GroupByKey is a Beam transform for processing collections of key/value pairs.
+                It’s a parallel reduction operation, analogous to the Shuffle phase of a Map/Shuffle/Reduce-style algorithm. The input to GroupByKey is a collection of key/value pairs that represents a multimap, where the collection contains multiple pairs that have the same key, but different values. Given such a collection, you use GroupByKey to collect all of the values associated with each unique key.
+            </p>
+            <p>
+                GroupByKey is a good way to aggregate data that has something in common.
+                For example, if you have a collection that stores records of customer orders, you might want to group together all the orders from the same postal code (wherein the “key” of the key/value pair is the postal code field, and the “value” is the remainder of the record).
+            </p>
+            <p>
+                Let’s examine the mechanics of GroupByKey with a simple example case, where our data set consists of words from a text file and the line number on which they appear. We want to group together all the line numbers (values) that share the same word (key),
+                letting us see all the places in the text where a particular word appears.
+            </p>
+            <p>
+                Our input is a PCollection of key/value pairs where each word is a key, and the value is a line number in the file where the word appears.
+                Here’s a list of the key/value pairs in the input collection:
+            </p>
+        <code-block lang="plain text">
+            cat, 1
+            dog, 5
+            and, 1
+            jump, 3
+            tree, 2
+            cat, 5
+            dog, 2
+            and, 2
+            cat, 9
+            and, 6
+            ...
+
+        </code-block>
+            <p>
+                GroupByKey gathers up all the values with the same key and outputs a new pair consisting of the unique key and a collection of all of the values that were associated with that key in the input collection. If we apply GroupByKey to our input collection above, the output collection would look like this:
+            </p>
+            <code-block lang="plain text">
+                cat, [1,5,9]
+                dog, [5,2]
+                and, [1,2,6]
+                jump, [3]
+                tree, [2]
+                ...
+
+            </code-block>
+            <p>
+                Thus, GroupByKey represents a transform from a multimap (multiple keys to individual values) to a uni-map (unique keys to collections of values).
+            </p>
+            <p>
+                Using GroupByKey is straightforward:
+            </p>
+            <tabs group="lang">
+                <tab title="Java" group-key="Java">
+                    <code-block lang="Java">
+                        <![CDATA[
+                        // The input PCollection.
+                        PCollection<KV<String, String>> mapped = ...;
+
+                        // Apply GroupByKey to the PCollection mapped.
+                        // Save the result as the PCollection reduced.
+                        PCollection<KV<String, Iterable<String>>> reduced =
+                        mapped.apply(GroupByKey.<String, String>create());
+                        ]]>
+                    </code-block>
+                </tab>
+                <tab title="Python" group-key="Python">
+                    <code-block lang="python">
+                        # The input PCollection of (`string`, `int`) tuples.
+                        words_and_counts = ...
+
+
+                        grouped_words = words_and_counts | beam.GroupByKey()
+                    </code-block>
+                </tab>
+                <tab title="Go" group-key="Go">
+                    <code-block lang="go">
+                        <![CDATA[
+                        // CreateAndSplit creates and returns a PCollection with <K,V>
+                        // from an input slice of stringPair (struct with K, V string fields).
+                        pairs := CreateAndSplit(s, input)
+                        keyed := beam.GroupByKey(s, pairs)
+                        ]]>
+                    </code-block>
+                </tab>
+                <tab title="Typescript" group-key="Typescript">
+                    <code-block lang="typescript">
+                        <![CDATA[
+                        // A PCollection of elements like
+                        //    {word: "cat", score: 1}, {word: "dog", score: 5}, {word: "cat", score: 5}, ...
+                        const scores : PCollection<{word: string, score: number}> = ...
+
+                        // This will produce a PCollection with elements like
+                        //   {key: "cat", value: [{ word: "cat", score: 1 },
+                        //                        { word: "cat", score: 5 }, ...]}
+                        //   {key: "dog", value: [{ word: "dog", score: 5 }, ...]}
+                        const grouped_by_word = scores.apply(beam.groupBy("word"));
+
+                        // This will produce a PCollection with elements like
+                        //   {key: 3, value: [{ word: "cat", score: 1 },
+                        //                    { word: "dog", score: 5 },
+                        //                    { word: "cat", score: 5 }, ...]}
+                        const by_word_length = scores.apply(beam.groupBy((x) => x.word.length));
+                    ]]>
+                    </code-block>
+                </tab>
+            </tabs>
+        </chapter>
+        <chapter title="4.4. Side inputs">
+            <p>In addition to the main input PCollection, you can provide additional inputs to a ParDo transform in the form of side inputs.
+                A side input is an additional input that your DoFn can access each time it processes an element in the input PCollection. When you specify a side input, you create a view of some other data that can be read from within the ParDo transform’s DoFn while processing each element.
+            </p>
+            <p>
+                Side inputs are useful if your ParDo needs to inject additional data when processing each element in the input PCollection,
+                but the additional data needs to be determined at runtime (and not hard-coded). Such values might be determined by the input data, or depend on a different branch of your pipeline.
+            </p>
+        </chapter>
+        <chapter title="4.5. Additional outputs">
+            <p>
+                While ParDo always produces a main output PCollection (as the return value from apply),
+                you can also have your ParDo produce any number of additional output PCollections.
+                If you choose to have multiple outputs, your ParDo returns all of the output PCollections (including the main output) bundled together.
+            </p>
+        </chapter>
+    </chapter>
+    <chapter title="5. Pipeline I/O">
+        <p>
+            When you create a pipeline, you often need to read data from some external source, such as a file or a database.
+            Likewise, you may want your pipeline to output its result data to an external storage system.
+            Beam provides read and write transforms for a number of common data storage types.
+            If you want your pipeline to read from or write to a data storage format that isn’t supported by the built-in transforms, you can implement your own read and write transforms.
+        </p>
+    </chapter>
+    <chapter title="6. Schemas">
+        <p>
+            Often, the types of the records being processed have an obvious structure.
+            Common Beam sources produce JSON, Avro, Protocol Buffer, or database row objects;
+            all of these types have well defined structures, structures that can often be determined by examining the type.
+        </p>
+        <p>
+            Even within a SDK pipeline, Simple Java POJOs (or equivalent structures in other languages) are often used as intermediate types, and these also have a clear structure that can be inferred by inspecting the class. By understanding the structure of a pipeline’s records, we can provide much more concise APIs for data processing.
+        </p>
+    </chapter>
+    <chapter title="7. Data encoding and type safety">
+        <tabs group="lang">
+            <tab title="Java SDK" group-key="Java">
+                <p>
+                    When Beam runners execute your pipeline, they often need to materialize the intermediate data in your PCollections, which requires converting elements to and from byte strings. The Beam SDKs use objects called Coders to describe how the elements of a given PCollection may be encoded and decoded.
+                </p>
+                <note>
+                    Note that coders are unrelated to parsing or formatting data when interacting with external data sources or sinks.
+                    Such parsing or formatting should typically be done explicitly, using transforms such as ParDo or MapElements.
+                </note>
+                <p>
+                    In the Beam SDK for Java, the type Coder provides the methods required for encoding and decoding data.
+                    The SDK for Java provides a number of Coder subclasses that work with a variety of standard Java types, such as Integer, Long, Double, StringUtf8 and more. You can find all of the available Coder subclasses in the Coder package.
+                </p>
+            </tab>
+            <tab title="Python SDK" group-key="Python">
+                <p>When Beam runners execute your pipeline, they often need to materialize the intermediate data in your PCollections, which requires converting elements to and from byte strings.
+                    The Beam SDKs use objects called Coders to describe how the elements of a given PCollection may be encoded and decoded.</p>
+
+                <note>Note that coders are unrelated to parsing or formatting data when interacting with external data sources or sinks. Such parsing or formatting should typically be done explicitly,
+                    using transforms such as ParDo or MapElements.</note>
+
+                <p>In the Beam SDK for Python, the type Coder provides the methods required for encoding and decoding data.
+                    The SDK for Python provides a number of Coder subclasses that work with a variety of standard Python types, such as primitive types, Tuple, Iterable, StringUtf8 and more. You can find all of the available Coder subclasses in the apache_beam.coders package.</p>
+
+                <note>Note that coders do not necessarily have a 1:1 relationship with types.
+                    For example, the Integer type can have multiple valid coders, and input and output data can use different Integer coders. A transform might have Integer-typed input data that uses BigEndianIntegerCoder, and Integer-typed output data that uses VarIntCoder.</note>
+            </tab>
+            <tab title="Go SDK" group-key="Go">
+                <p>When Beam runners execute your pipeline, they often need to materialize the intermediate data in your PCollections, which requires converting elements to and from byte strings.
+                    The Beam SDKs use objects called Coders to describe how the elements of a given PCollection may be encoded and decoded.</p>
+
+                <note>Note that coders are unrelated to parsing or formatting data when interacting with external data sources or sinks. Such parsing or formatting should typically be done explicitly,
+                    using transforms such as ParDo or MapElements.</note>
+
+                <p>Standard Go types like int, int64 float64, []byte, and string and more are coded using builtin coders.
+                    Structs and pointers to structs default using Beam Schema Row encoding. However, users can build and register custom coders with beam.RegisterCoder. You can find available Coder functions in the coder package.</p>
+
+                <note>Note that coders do not necessarily have a 1:1 relationship with types.
+                    For example, the Integer type can have multiple valid coders, and input and output data can use different Integer coders. A transform might have Integer-typed input data that uses BigEndianIntegerCoder, and Integer-typed output data that uses VarIntCoder.</note>
+
+            </tab>
+        </tabs>
+    </chapter>
+</topic>

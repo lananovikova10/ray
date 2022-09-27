@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rules SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/redirection-rules.dtd">
+<rules>
+    <rule id="52fa3032">
+        <description>Created after removal of "About Sample Product" from Beam</description>
+        <accepts>About Sample Product.html</accepts>
+    </rule>
+    <rule id="1baa12a8">
+        <description>Created after removal of "Empty SML Topic" from Beam</description>
+        <accepts>Empty-SML-Topic.html</accepts>
+    </rule>
+    <rule id="26e6d8a4">
+        <description>Created after removal of "Empty SML Topic" from Ray</description>
+        <accepts>Empty-SML-Topic.html</accepts>
+    </rule>
+    <rule id="7533d0ba">
+        <description>Created after removal of "How to create a new pipeline object" from Ray</description>
+        <accepts>How-to-create-a-new-pipeline-object.html</accepts>
+    </rule>
+    <rule id="56fec456">
+        <description>Created after removal of "How to create a new pipeline object" from Ray</description>
+        <accepts>How-to-create-a-new-pipeline-object.html</accepts>
+    </rule>
+    <rule id="19d52b81">
+        <description>Created after removal of "How to create a new pipeline object" from Ray</description>
+        <accepts>How-to-create-a-new-pipeline-object.html</accepts>
+    </rule>
+</rules>

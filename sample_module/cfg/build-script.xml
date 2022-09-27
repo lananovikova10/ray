@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root
+        SYSTEM "https://resources.jetbrains.com/stardust/build-script.dtd">
+<root>
+    <builds>
+        <instance id="bm" master="project.ihp" family="idea">
+            <artifact type="web2" name="webHelpBM2.zip" universal-zip="true" platform="primary" local-update="true"/>
+        </instance>
+    </builds>
+</root>

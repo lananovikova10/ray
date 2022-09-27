@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="google-bq"
+       title="Google BigQuery patterns" switcher-label="SDK">
+    <p>The samples on this page show you common patterns for use with BigQueryIO.
+    </p>
+    <chapter title="BigQueryIO deadletter pattern" switcher-key="Java SDK">
+        <p>
+            In production systems, it is useful to implement the deadletter pattern with BigQueryIO outputting any elements which had errors during processing by BigQueryIO into another PCollection for further processing.
+            The samples below print the errors, but in a production system they can be sent to a deadletter table for later correction.
+            When using <code>STREAMING_INSERTS</code> you can use the <code>WriteResult</code> object to access a <code>PCollection</code> with the TableRows that failed to be inserted into BigQuery.</p>
+        <p>If you also set the <code>withExtendedErrorInfo</code> property , you will be able to access a <code>PCollection_BigQueryInsertError</code> from the <code>WriteResult</code>.
+            The PCollection will then include a reference to the table, the data row and the <code>InsertErrors</code>.
+            Which errors are added to the deadletter queue is determined via the <code>InsertRetryPolicy</code>.
+        </p>
+    </chapter>
+    <chapter title="BigQueryIO deadletter pattern" switcher-key="Java SDK">
+        <p>
+            In production systems, it is useful to implement the deadletter pattern with BigQueryI outputting any elements which had errors during processing by BigQueryIO into another PCollection for further processing.
+            The samples below print the errors,
+            but in a production system they can be sent to a deadletter table for later correction.
+            In the result tuple you can access <code>FailedRows</code> to access the failed inserts.
+        </p>
+    </chapter>
+    <tabs>
+        <tab title="Java" switcher-key="Java SDK">
+            <code-block lang="java">
+                <![CDATA[
+                PipelineOptions options =
+                PipelineOptionsFactory.fromArgs(args).withValidation().as(BigQueryOptions.class);
+
+                Pipeline p = Pipeline.create(options);
+
+                // Create a bug by writing the 2nd value as null. The API will correctly
+                // throw an error when trying to insert a null value into a REQUIRED field.
+                WriteResult result =
+                p.apply(Create.of(1, 2))
+                .apply(
+                BigQueryIO.<Integer>write()
+                .withSchema(
+                new TableSchema()
+                .setFields(
+                ImmutableList.of(
+                new TableFieldSchema()
+                .setName("num")
+                .setType("INTEGER")
+                .setMode("REQUIRED"))))
+                .to("Test.dummyTable")
+                .withFormatFunction(x -> new TableRow().set("num", (x == 2) ? null : x))
+                .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors())
+                // Forcing the bounded pipeline to use streaming inserts
+                .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                // set the withExtendedErrorInfo property.
+                .withExtendedErrorInfo()
+                .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
+                .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND));
+
+                result
+                .getFailedInsertsWithErr()
+                .apply(
+                MapElements.into(TypeDescriptors.strings())
+                .via(
+                x -> {
+                System.out.println(" The table was " + x.getTable());
+                System.out.println(" The row was " + x.getRow());
+                System.out.println(" The error was " + x.getError());
+                return "";
+                }));
+                p.run();
+
+                /*  Sample Output From the pipeline:
+                <p>The table was GenericData{classInfo=[datasetId, projectId, tableId], {datasetId=Test,projectId=<>, tableId=dummyTable}}
+                <p>The row was GenericData{classInfo=[f], {num=null}}
+                <p>The error was GenericData{classInfo=[errors, index],{errors=[GenericData{classInfo=[debugInfo, location, message, reason], {debugInfo=,location=, message=Missing required field: Msg_0_CLOUD_QUERY_TABLE.num., reason=invalid}}],index=0}}
+                */
+                }
+                ]]>
+            </code-block>
+        </tab>
+        <tab title="Python" switcher-key="Python SDK">
+            <code-block lang="python">
+                <![CDATA[
+                # Create pipeline.
+                schema = ({'fields': [{'name': 'a', 'type': 'STRING', 'mode': 'REQUIRED'}]})
+
+                pipeline = beam.Pipeline()
+
+                errors = (
+                pipeline | 'Data' >> beam.Create([1, 2])
+                | 'CreateBrokenData' >>
+                beam.Map(lambda src: {'a': src} if src == 2 else {'a': None})
+                | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
+                "<Your Project:Test.dummy_a_table",
+          schema=schema,
+          insert_retry_strategy='RETRY_ON_TRANSIENT_ERROR',
+          create_disposition='CREATE_IF_NEEDED',
+          write_disposition='WRITE_APPEND'))
+  result = (
+      errors['FailedRows']
+      | 'PrintErrors' >>
+      beam.FlatMap(lambda err: print("Error Found {}".format(err))))
+      ]]>
+            </code-block>
+        </tab>
+    </tabs>
+</topic>
