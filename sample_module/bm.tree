@@ -13,7 +13,6 @@
         <toc-element topic="about-ray.topic"/>
     </toc-element>
     <toc-element topic="How-to-create-a-pipeline-object.md"/>
-    <toc-element topic="extention-points-test.md"/>
     <toc-element topic="container-envs.md"/>
     <toc-element topic="google-bq.topic"/>
     <toc-element topic="faq.md"/>

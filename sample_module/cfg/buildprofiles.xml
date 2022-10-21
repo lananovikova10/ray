@@ -22,5 +22,13 @@
         </config-versions-switcher>
         <og-image>sample-image.png</og-image>
     </variables>
+    <footer>
+        <copyright>2000–2022 Product</copyright>
+        <social type="twitter" href="URL"/>
+        <social type="blog" href="https://blog.jetbrains.com/smth"/>
+        <social type="youtube" href="URL"/>
+        <link href="URL">Landing page</link>
+        <link href="URL">Slack community</link>
+    </footer>
     <build-profile instance="sd"/>
 </buildprofiles>

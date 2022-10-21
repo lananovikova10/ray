@@ -9,4 +9,5 @@
 
     <instance src="bm.tree" version="1.0"/>
     <instance src="lib.tree" web-path="/lib/" version="1.0"/>
+    <instance src="ts.tree" web-path="/ts/" version="1.0"/>
 </ihp>

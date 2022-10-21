@@ -14,6 +14,11 @@ You may want to customize container images for many reasons, including:
 - Further customizing the execution environment
 - This guide describes how to create and use customized containers for the Beam SDK.
 
+```mermaid
+flowchart TD
+    Start --> Stop
+```
+
 ### Prerequisites
 
 This guide requires building images using Docker. Install Docker locally. Some CI/CD platforms like Google Cloud Build also provide the ability to build images using Docker.

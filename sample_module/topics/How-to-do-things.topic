@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="How-to-do-things"
+       title="How to do things" help-id="how-to">
+    <!--A How-to article is an action-oriented type of document. It explains how to perform a specific task or
+    solve a problem, and contains a sequence of steps.-->
+    <p>
+        A short introductory paragraph. Here you can explain what users will accomplish by following
+        this procedure, what they need to perform it for, or define the target audience of the doc.
+    </p>
+    <note>
+        <p>
+            Highlight important information.
+            You can change this element to <emphasis>tip</emphasis> or <emphasis>warning</emphasis> by
+            renaming one of the tags.
+        </p>
+    </note>
+
+    <chapter title="Before you start" id="before">
+        <!--A good practice is to list the prerequisites that have to be met to complete a task.-->
+        <p>Make sure that:
+        </p>
+        <list style="bullet">
+            <li>First prerequisite</li>
+            <li>Second prerequisite.</li>
+        </list>
+    </chapter>
+
+    <chapter title="How to perform a task" id="how-to">
+        <p>
+            Some introductory information.
+        </p>
+        <procedure title="How to title" id="steps-sequence">
+            <!--Try to keep procedures not longer than 5 steps for ease of perception.
+            If the title of a procedure repeats the wrapping chapter title, avoid repeating it
+            and just skip the 'title' attribute-->
+            <step><p>Step one with an image.</p>
+                <!--Change the src attribute of the image below to the local file from an /images folder of the project-->
+                <img src="batch_stream_processing_desktop.png" width="300" alt="Sample"/>
+            </step>
+            <step><p>Step two with a code block.</p>
+                <code style="block" lang="plain text">
+                    Hello, world!
+                </code>
+            </step>
+            <step>
+                <p>Step 3 with a list.
+                </p>
+                <list style="bullet">
+                    <li>
+                        <p>
+                            List item.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            List item.
+                        </p>
+                    </li>
+                    <li>
+                            <p>List item.</p>
+                    </li>
+                </list>
+            </step>
+        </procedure>
+    </chapter>
+</topic>

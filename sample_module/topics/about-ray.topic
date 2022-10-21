@@ -12,9 +12,9 @@
         It provides guidance for using the %product% SDK classes to build and test your pipeline.
     </p>
 
-    <p>This is <res id="python-library" resource-id="xml">Downloadable</res>.</p>
+    <p>This is <res id="123" resource-id="xls10">Downloadable</res>.</p>
 
-    <img src="gaming-example.gif" alt="Gaming Example" border-effect="none"/>
+    <img src="gaming-example.gif" alt="Gaming Example"/>
     <p>
         The programming guide is not intended as an exhaustive reference, but as a language-agnostic,
         high-level guide to programmatically building your Beam pipeline.

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+
+<topic xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       title="Library"
+       id="lib">
+
+    <snippet id="cool-id">
+    <p>Let's see what we have to say about test</p>
+    <compare first-title="Python" second-title="Java">
+        <code-block lang="python">
+            my_list = [1, 2, 3, 4, 5]
+        </code-block>
+        <code-block lang="python">
+            my_list = [1, 2, 3, 4, 5]
+        </code-block>
+    </compare>
+    </snippet>
+</topic>

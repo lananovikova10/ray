@@ -1,0 +1,32 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic
+        SYSTEM "https://helpserver.labs.jb.gg/help/schemas/mvp/html-entities.dtd">
+<topic xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="https://helpserver.labs.jb.gg/help/schemas/mvp/topic.v2.xsd"
+       id="Overview-of-the-Ray"
+       title="Overview of the Ray" help-id="explanation">
+    <!--Overview or Explanation articles give background information and provide context to a particular subject.
+    Their goal is to explain a concept, not to teach or give instructions.-->
+    <chapter title="What is &lt;product/service/concept&gt;" id="overview-chapter">
+        <p>Provide some background and context, explain choices and alternatives.</p>
+    </chapter>
+    <chapter title="Glossary" id="glossary-is-cool">
+        <deflist>
+            <!--A definition list or a glossary.-->
+            <def title="Term1">
+                This is the definition of the first term.
+            </def>
+            <def title="Term2">
+                This is the definition of the second term.
+            </def>
+        </deflist>
+    </chapter>
+    <chapter title="Explanatory topic 1" id="explain1">
+        <p>Start writing here</p>
+    </chapter>
+    <chapter title="Explanatory topic 2" id="explain2">
+        <p>Start writing here</p>
+    </chapter>
+
+</topic>
